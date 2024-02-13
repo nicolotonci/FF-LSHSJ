@@ -38,3 +38,13 @@ Link the *libmetall_c.a* to your executable editing the Makefile in example fold
 | NONBLOCKING | Set the FastFlow execution mode to non-blocking to privilege node-responsiveness with respect to power efficiency.|
 |NO_DEFAULT_MAPPING| Disable the default mapping of threads specified with the FastFlow mapping_string.sh command, leaving control of the mapping to the operating system kernel.|
 | USE_METALL | Enable Metall , to perform spill-on-disks, in case of insufficient memory.|
+
+## Configuration files
+Framework configuration file is a csv file with space separated values. The first column is the hostname of the machine in which the i-th group is going to run, the second column specify the number of mappers for that group and the last column to the same for the number of reducers. The structure is the following:
+
+    hostname #mappers #reducers
+For example:
+
+    compute1 10 5
+    compute2 5 15
+Those configuration file must be converted to FastFlow json configuration files through the Python script *util/ff-config-builder.py*. The output file can be further customized to optimize your execution. The same file can be used also to launch the execution through the FastFlow *dff_run* utility.
