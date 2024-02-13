@@ -1,5 +1,17 @@
-CXX	       +=-std=c++20 -DDFF_EXCLUDE_MPI
-INCLUDES	= -I ./ -I ~/fastflow -I ~/cereal/include 
+CXX	       +=-std=c++20 # -DDFF_EXCLUDE_MPI
+INCLUDES	= -I ./ -I ../../include/ 
+
+ifdef CEREAL_HOME
+    INCS     += -I$(CEREAL_HOME)/include
+else
+    INCS     += -I ~/cereal/include
+endif
+
+ifdef FF_HOME
+    INCS     += -I$(FF_HOME)
+else
+    INCS     += -I ~/fastflow
+endif
 
 ifdef DEBUG
     OPTIMIZE_FLAGS  += -g -fno-inline-functions -DPRINT_IR
@@ -7,17 +19,9 @@ else
     OPTIMIZE_FLAGS  += -O3 -finline-functions -DNDEBUG
 endif
 
-# ifdef MAPPER
-# OPTIMIZE_FLAGS += -DMAPPER=$(MAPPER)
-# else
-# OPTIMIZE_FLAGS += -DMAPPER=2
-# endif
-
-# ifdef REDUCER
-# OPTIMIZE_FLAGS += -DREDUCER=$(REDUCER)
-# else
-# OPTIMIZE_FLAGS += -DREDUCER=2
-# endif
+ifdef SINGLE_PROCESS
+OPTIMIZE_FLAGS += -DDISABLE_FF_DISTRIBUTED
+endif
 
 ifdef BATCH
 OPTIMIZE_FLAGS += -DBATCHING_THRESHOLD=$(BATCH)
@@ -60,6 +64,3 @@ clean		:
 	rm -f $(TARGETS)
 cleanall	: clean
 	\rm -f *.o *~
-
-
-

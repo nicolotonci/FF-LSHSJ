@@ -1,6 +1,8 @@
+#!/bin/bash
 echo "Splitting file $1 in $2 partitions"
 
-split -d -n l/$2 --suffix-length=2 $1 /tmp/$1-
+# write results to tmp if you plan to distribute the chunks over the computing nodes, in order to save writing on disks intermediate results
+split -d -n l/$2 --suffix-length=2 $1 ./$1-
 
 
 # Uncomment the following lines if you want to distribute chunk over the computing nodes.

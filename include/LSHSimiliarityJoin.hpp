@@ -143,11 +143,11 @@ class SimilarityJoin {
         size_t startLine, lineToProcess;
         std::streampos initialPosition;
         SimilarityJoin* parent;
-        inline static std::atomic<int> mapperExited = MAPPER;
         std::vector<std::vector<M2R>*> outBuffers;
 
     public:    
-        Mapper(membuf membuf_, size_t lineStart, size_t lineToProcess, SimilarityJoin* parent) : membuff(membuf_), in(&membuff), startLine(lineStart), lineToProcess(lineToProcess), parent(parent) { }
+        inline static std::atomic<int> mapperExited;
+	Mapper(membuf membuf_, size_t lineStart, size_t lineToProcess, SimilarityJoin* parent) : membuff(membuf_), in(&membuff), startLine(lineStart), lineToProcess(lineToProcess), parent(parent) { }
 
         int svc_init(){
 
@@ -507,23 +507,21 @@ public:
         close(fd);
         std::vector<ff::ff_node*> mappers, reducers;
 
-#ifdef DISABLE_FF_DISTRIBUTED
-#undef PROCESSES
-#define PROCESSES 1
-#endif
-        
-        auto configValues = parseConfigFile(configFile);
+	auto configValues = parseConfigFile(configFile);
         int mappersTotal = 0, reducersTotal = 0;
 
         for(int i = 0; i < configValues.size(); i++){
-            mappersTotal += std::stoi(configValues[i][1];
-            reducersTotal += std::stoi(configValue[i][2]);
+            mappersTotal += std::stoi(configValues[i][1]);
+            reducersTotal += std::stoi(configValues[i][2]);
         }
+
+	int executingGroup = std::atoi(ff::DFF_getMyGroup().c_str()+1);
+	Mapper::mapperExited = std::stoi(configValues[executingGroup][1]);
 
         for (int p = 0; p < configValues.size(); p++){
             auto g = a2a.createGroup("G"+std::to_string(p));
-            int myMappers = std::stoi(configValues[p][1];
-            int myReducers = std::stoi(configValue[p][2]);
+            int myMappers = std::stoi(configValues[p][1]);
+            int myReducers = std::stoi(configValues[p][2]);
             size_t lineToProcessXMapper = lines / myMappers;
             for (int i = 0; i < myMappers; i++){
                 auto* component = new ff::ff_comb(new MiForwarder(reducersTotal), new Mapper(std::move(membuf(mapped, size)), i*lineToProcessXMapper, (i == myMappers-1 ? lines-i*lineToProcessXMapper : lineToProcessXMapper), this), true, true);
@@ -545,7 +543,7 @@ public:
 
 
     int execute(){
-#ifndef DISABLE_FF_DISTRIBUTED        
+#if 0        
         ff::ff_pipeline pipe;
         pipe.add_stage(&a2a);
         pipe.wrap_around();

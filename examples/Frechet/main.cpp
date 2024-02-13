@@ -9,9 +9,9 @@
 #include <random>
 #include "LSHSimiliarityJoin.hpp"
 #include "datasetReader.hpp"
-#include "dependencies/hash.hpp"
-#include "dependencies/geometry_basics.hpp"
-#include "dependencies/frechet_distance.hpp"
+#include "hash.hpp"
+#include "geometry_basics.hpp"
+#include "frechet_distance.hpp"
 
 
 
@@ -49,14 +49,14 @@ int main(int argc, char** argv){
     lsh8.init(LSH_RESOLUTION, 8*LSH_SEED, 8);
 
 #ifndef DISABLE_FF_DISTRIBUTED
-    std::string inputFile = std::string(argv[1]) + "-" + leadingZeros(std::stoi(ff::DFF_getMyGroup().substr(1)));
+    std::string inputFile = std::string(argv[2]) + "-" + leadingZeros(std::stoi(ff::DFF_getMyGroup().substr(1)));
 #else
-    std::string inputFile = std::string(argv[1]); 
+    std::string inputFile = std::string(argv[2]); 
 #endif
 
-    SimilarityJoin<data_t, 8> pippo(1, // number of processes
+    SimilarityJoin<data_t, 8> pippo(argv[1], // config File
     std::string(inputFile), // filename input
-    std::atoll(argv[2]), // lines count
+    std::atoll(argv[3]), // lines count
     [](std::string& line) -> item<data_t> {  // parse Function
         std::istringstream ss(line);
         item<data_t> output;

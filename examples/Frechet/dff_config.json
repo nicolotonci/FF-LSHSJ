@@ -2,15 +2,11 @@
     "groups": [
         {
             "name": "G0",
-            "endpoint": "compute1:8000"
+            "endpoint": "localhost:8000"
         },
         {
             "name": "G1",
-            "endpoint": "compute2:8000"
-        },
-        {
-            "name": "G2",
-            "endpoint": "compute3:8000"
+            "endpoint": "localhost:8001"
         }
     ]
 }

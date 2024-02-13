@@ -16,7 +16,7 @@ std::vector<std::string> parseConfigLine(const std::string& line, char delimiter
 }
 
 
-std::vector<std::vector<std::string>> parseConfigFile(const std::string& filename, char delimiter = ',') {
+std::vector<std::vector<std::string>> parseConfigFile(const std::string& filename, char delimiter = ' ') {
     std::vector<std::vector<std::string>> data;
 
     std::ifstream file(filename);
@@ -27,7 +27,7 @@ std::vector<std::vector<std::string>> parseConfigFile(const std::string& filenam
 
     std::string line;
     while (std::getline(file, line)) {
-        data.push_back(parseCSVLine(line, delimiter));
+        data.push_back(parseConfigLine(line, delimiter));
     }
 
     file.close();
