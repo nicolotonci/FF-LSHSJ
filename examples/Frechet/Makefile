@@ -2,15 +2,15 @@ CXX	       +=-std=c++20 # -DDFF_EXCLUDE_MPI
 INCLUDES	= -I ./ -I ../../include/ 
 
 ifdef CEREAL_HOME
-    INCS     += -I$(CEREAL_HOME)/include
+    INCLUDES     += -I$(CEREAL_HOME)/include
 else
-    INCS     += -I ~/cereal/include
+    INCLUDES     += -I ~/cereal/include
 endif
 
 ifdef FF_HOME
-    INCS     += -I$(FF_HOME)
+    INCLUDES     += -I$(FF_HOME)
 else
-    INCS     += -I ~/fastflow
+    INCLUDES     += -I ~/fastflow
 endif
 
 ifdef DEBUG
