@@ -22,19 +22,9 @@
 #include "mmap_allocator.hpp"
 #endif
 
-//#define SIM_THRESHOLD 10 //0.01 for taxi  //generated 10
-//#define LSH_SEED 234
-//#define LSH_RESOLUTION 80 //0.08 for taxi // generated 80
+#ifndef MAX_TRAJECTORIES_PER_NODE
 #define MAX_TRAJECTORIES_PER_NODE 10000
-//#define PROCESSES 2
-//#define MAPPER 2
-//#define REDUCER 2
-
-//#define BATCHING_THRESHOLD 512
-
-//#define WRITE_RESULT
-
-//#define PROFILE_DATA
+#endif
 
 std::atomic<size_t> founded = 0;
 std::atomic<size_t> globalCounter = 0;
@@ -93,6 +83,7 @@ class SimilarityJoin {
     std::hash<long> hash;
     char* mapped;
     size_t size;
+    size_t batchThreshold;
     ff::ff_a2a a2a;
 
     //using R2M_feedback_t = std::map<long, std::pair<size_t, size_t>>;
@@ -154,7 +145,7 @@ class SimilarityJoin {
             outBuffers.resize(this->get_num_outchannels());
             for(size_t i  = 0; i < this->get_num_outchannels(); ++i){
                 outBuffers[i] = new std::vector<M2R>();
-                outBuffers[i]->reserve(BATCHING_THRESHOLD);
+                outBuffers[i]->reserve(parent->batchThreshold);
             }
 
             GotoLine(in, startLine+1); // got to the correct line
@@ -165,10 +156,10 @@ class SimilarityJoin {
         void sendOutTo(M2R item, size_t dest){
 	        auto* buff = outBuffers[dest];
             buff->push_back(std::move(item));
-            if (buff->size() == BATCHING_THRESHOLD){
+            if (buff->size() == parent->batchThreshold){
                 this->ff_send_out_to(buff, dest);
                 outBuffers[dest] = new std::vector<M2R>();
-                outBuffers[dest]->reserve(BATCHING_THRESHOLD);
+                outBuffers[dest]->reserve(parent->batchThreshold);
             }
         }
 
@@ -176,7 +167,7 @@ class SimilarityJoin {
             for(size_t i  = 0; i < this->get_num_outchannels(); ++i){
                 this->ff_send_out_to(outBuffers[i], i);
                 outBuffers[i] = new std::vector<M2R>();
-                outBuffers[i]->reserve(BATCHING_THRESHOLD);
+                outBuffers[i]->reserve(parent->batchThreshold);
             }
 
 #ifndef DISABLE_FF_DISTRIBUTED                
@@ -492,10 +483,12 @@ public:
                    size_t lines,
                    readFunction_t<T> readerFunction, 
                    std::array<lshFunction_t<T>, _lshs> lshFamily, 
-                   similarityFunction_t<T> simFunction
+                   similarityFunction_t<T> simFunction,
+                   size_t batchSize = BATCHING_THRESHOLD
                   ) : reader(readerFunction), 
                       lshFamily(lshFamily), 
-                      similarityTest(simFunction) {
+                      similarityTest(simFunction),
+                      batchThreshold(batchSize) {
 #ifdef _USE_METALL_
         metall_open(METALL_CREATE_ONLY, "/tmp");
 #endif

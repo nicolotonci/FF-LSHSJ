@@ -38,6 +38,9 @@ Link the *libmetall_c.a* to your executable editing the Makefile in example fold
 | NONBLOCKING | Set the FastFlow execution mode to non-blocking to privilege node-responsiveness with respect to power efficiency.|
 |NO_DEFAULT_MAPPING| Disable the default mapping of threads specified with the FastFlow mapping_string.sh command, leaving control of the mapping to the operating system kernel.|
 | USE_METALL | Enable Metall , to perform spill-on-disks, in case of insufficient memory.|
+| WRITE_RESULT | Enable writing results on disk. Like Hadoop, each reducer produce a file with its output (each file is tagged with the group name and local id of the reducer) |
+| BATCH | Takes a positive integer and represent the default batchSize for the framework if none is passed in the contructor in the application. Default is 256.|
+| MAX_TRAJECTORIES_REDUCER | Takes a positive integer and represents the maximum number of trajectories for a given hash can be handled by each reducer. Default is 10000|
 
 ## Configuration files
 Framework configuration file is a csv file with space separated values. The first column is the hostname of the machine in which the i-th group is going to run, the second column specify the number of mappers for that group and the last column to the same for the number of reducers. The structure is the following:
