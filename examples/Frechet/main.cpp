@@ -48,15 +48,14 @@ int main(int argc, char** argv){
     lsh7.init(LSH_RESOLUTION, 7*LSH_SEED, 7);
     lsh8.init(LSH_RESOLUTION, 8*LSH_SEED, 8);
 
-#ifndef DISABLE_FF_DISTRIBUTED
-    std::string inputFile = std::string(argv[2]) + "-" + leadingZeros(std::stoi(ff::DFF_getMyGroup().substr(1)));
-#else
-    std::string inputFile = std::string(argv[2]); 
-#endif
+//#ifndef DISABLE_FF_DISTRIBUTED
+//    std::string inputFile = std::string(argv[2]) + "-" + leadingZeros(std::stoi(ff::DFF_getMyGroup().substr(1)));
+//#else
+//    std::string inputFile = std::string(argv[2]); 
+//#endif
 
     SimilarityJoin<data_t, 8> pippo(argv[1], // config File
     std::string(inputFile), // filename input
-    std::atoll(argv[3]), // lines count
     [](std::string& line) -> item<data_t> {  // parse Function
         std::istringstream ss(line);
         item<data_t> output;

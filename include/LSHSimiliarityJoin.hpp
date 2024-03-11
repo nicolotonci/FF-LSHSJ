@@ -480,7 +480,6 @@ std::unordered_map<long, std::vector<M2R>> elements;
 public:
     SimilarityJoin(std::string configFile, 
                    std::string chunkFileName,
-                   size_t lines,
                    readFunction_t<T> readerFunction, 
                    std::array<lshFunction_t<T>, _lshs> lshFamily, 
                    similarityFunction_t<T> simFunction,
@@ -492,11 +491,45 @@ public:
 #ifdef _USE_METALL_
         metall_open(METALL_CREATE_ONLY, "/tmp");
 #endif
+        size_t lines = 0;
+        size_t start_pos = 0;
+        size_t end_pos = 0;
+        std::string indexPath = std::string(chunkFileName + "_index");
+        std::ifstream indexStream(indexPath);
+
+        
+#ifndef DISABLE_FF_DISTRIBUTED // DISTRIBUTED EXECUTION
+
+        size_t processID = std::stoi(ff::DFF_getMyGroup().substr(1));
+        for(size_t i = 0; i < processID; i++) indexStream.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        indexStream >> start_pos >> lines >> end_pos;
+
+#else // SINGLE PROCESS EXECUTION: I need to read all lines!
+
+        size_t _pos, _linesToRead;
+        while (indexStream >> _pos >> _linesToRead)
+        lines += _linesToRead;
+
+#endif
+
+
         int fd = open(chunkFileName.c_str(), O_RDONLY);
         struct stat s;
         fstat (fd, &s);
-        size = s.st_size;
-        mapped = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
+        if (end_pos == 0)
+            size = s.st_size - start_pos;
+        else
+            size = end_pos - start_pos;
+
+        off_t mmap_offset = 0;
+        size_t additional_offeset = 0;
+        if (start_pos != 0){
+            mmap_offset = (start_pos / sysconf(_SC_PAGE_SIZE)) * sysconf(_SC_PAGE_SIZE);
+            additional_offeset = start_pos %  sysconf(_SC_PAGE_SIZE);
+            size += additional_offeset;
+        }
+
+        mapped = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, mmap_offset));
         close(fd);
         std::vector<ff::ff_node*> mappers, reducers;
 
@@ -517,7 +550,7 @@ public:
             int myReducers = std::stoi(configValues[p][2]);
             size_t lineToProcessXMapper = lines / myMappers;
             for (int i = 0; i < myMappers; i++){
-                auto* component = new ff::ff_comb(new MiForwarder(reducersTotal), new Mapper(std::move(membuf(mapped, size)), i*lineToProcessXMapper, (i == myMappers-1 ? lines-i*lineToProcessXMapper : lineToProcessXMapper), this), true, true);
+                auto* component = new ff::ff_comb(new MiForwarder(reducersTotal), new Mapper(std::move(membuf(mapped + additional_offeset, size)), i*lineToProcessXMapper, (i == myMappers-1 ? lines-i*lineToProcessXMapper : lineToProcessXMapper), this), true, true);
                 mappers.push_back(component);
                 g << component;
             }
@@ -536,15 +569,8 @@ public:
 
 
     int execute(){
-#if 0        
-        ff::ff_pipeline pipe;
-        pipe.add_stage(&a2a);
-        pipe.wrap_around();
-        return pipe.run_and_wait_end();
-#else
         a2a.wrap_around();
         return a2a.run_and_wait_end();
-#endif
     }
 
     void freeMemoryMappedArea(){

@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     std::ofstream output(argv[3]);
     for (int i = 0; i < partitions; i++)
-        output << positions[i] << '\t' << (i+1 == partitions ? (total_lines - i*linesPerPartition) : linesPerPartition) <<   std::endl;
+        output << positions[i] << '\t' << (i+1 == partitions ? (total_lines - i*linesPerPartition) : linesPerPartition) << std::endl;
 
     std::cout << "Executed in: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count() << " ms\n";
     return 0;
