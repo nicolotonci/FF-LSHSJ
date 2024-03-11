@@ -4,6 +4,10 @@
 #include <chrono>
 
 int main(int argc, char* argv[]) {
+    if (argc != 3){
+        std::cerr << "Usage: " << argv[0] << " <numPartitions> <pathToDataset>";
+        return 1;
+    }
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -48,7 +52,7 @@ int main(int argc, char* argv[]) {
             dataset.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
     }
 
-    std::ofstream output(argv[3]);
+    std::ofstream output(std::string(argv[2] + "_index"));
     for (int i = 0; i < partitions; i++)
         output << positions[i] << '\t' << (i+1 == partitions ? (total_lines - i*linesPerPartition) : linesPerPartition) << std::endl;
 
