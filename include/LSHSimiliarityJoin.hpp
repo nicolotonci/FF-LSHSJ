@@ -504,6 +504,8 @@ public:
         for(size_t i = 0; i < processID; i++) indexStream.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
         indexStream >> start_pos >> lines >> end_pos;
 
+	ff::cout << "Start pos: " << start_pos << " - Lines to be processed: " << lines << std::endl;
+
 #else // SINGLE PROCESS EXECUTION: I need to read all lines!
 
         size_t _pos, _linesToRead;
@@ -522,13 +524,15 @@ public:
             size = end_pos - start_pos;
 
         off_t mmap_offset = 0;
-        size_t additional_offeset = 0;
+        size_t additional_offset = 0;
         if (start_pos != 0){
             mmap_offset = (start_pos / sysconf(_SC_PAGE_SIZE)) * sysconf(_SC_PAGE_SIZE);
-            additional_offeset = start_pos %  sysconf(_SC_PAGE_SIZE);
-            size += additional_offeset;
+            additional_offset = start_pos %  sysconf(_SC_PAGE_SIZE);
+            size += additional_offset;
         }
+	
 
+	ff::cout << "MMAP DEBUG => Size: " << size << " - Offset: " << mmap_offset << " - Additional offset: " << additional_offset << std::endl;
         mapped = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, mmap_offset));
         close(fd);
         std::vector<ff::ff_node*> mappers, reducers;
@@ -550,7 +554,7 @@ public:
             int myReducers = std::stoi(configValues[p][2]);
             size_t lineToProcessXMapper = lines / myMappers;
             for (int i = 0; i < myMappers; i++){
-                auto* component = new ff::ff_comb(new MiForwarder(reducersTotal), new Mapper(std::move(membuf(mapped + additional_offeset, size)), i*lineToProcessXMapper, (i == myMappers-1 ? lines-i*lineToProcessXMapper : lineToProcessXMapper), this), true, true);
+                auto* component = new ff::ff_comb(new MiForwarder(reducersTotal), new Mapper(std::move(membuf(mapped + additional_offset, size)), i*lineToProcessXMapper, (i == myMappers-1 ? lines-i*lineToProcessXMapper : lineToProcessXMapper), this), true, true);
                 mappers.push_back(component);
                 g << component;
             }

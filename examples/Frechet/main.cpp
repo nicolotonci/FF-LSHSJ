@@ -18,7 +18,7 @@
 
 //#define SIM_THRESHOLD 10 
 #define LSH_SEED 234
-#define LSH_RESOLUTION 0.08 //0.08 for taxi // generated 80
+#define LSH_RESOLUTION 80 //0.08 for taxi // generated 80
 //#define MAX_TRAJECTORIES_PER_NODE 10000
 
 //#define MAPPER 2
@@ -29,7 +29,7 @@
 //#define WRITE_RESULT
 
 
-const static double SIM_THRESHOLD = 0.01;  //0.01 for taxi  //generated 10
+const static double SIM_THRESHOLD = 10;  //0.01 for taxi  //generated 10
 const static double SIM_THRESHOLD_SQR = sqr(SIM_THRESHOLD);
 
 int main(int argc, char** argv){
@@ -55,7 +55,7 @@ int main(int argc, char** argv){
 //#endif
 
     SimilarityJoin<data_t, 8> pippo(argv[1], // config File
-    std::string(inputFile), // filename input
+    std::string(argv[2]), // filename input
     [](std::string& line) -> item<data_t> {  // parse Function
         std::istringstream ss(line);
         item<data_t> output;

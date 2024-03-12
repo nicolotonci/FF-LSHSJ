@@ -11,9 +11,7 @@ int main(int argc, char* argv[]) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    int partitions = std::atoi(argv[1]);
-    //std::string dataSetPath = std::string(argv[2]);
-    std::string indexPath = std::string(argv[3]);
+    int partitions = std::atoi(argv[1]); 
 
     std::streampos positions[partitions];
 
@@ -44,15 +42,16 @@ int main(int argc, char* argv[]) {
     dataset.clear(); dataset.seekg(0, dataset.beg);
     size_t linesPerPartition = total_lines / partitions;
 
-    std::cout << "Lines per partitin: " << linesPerPartition << std::endl;
+    std::cout << "Lines per partition: " << linesPerPartition << std::endl;
 
     for(int i = 0; i < partitions; i++){
         positions[i] = dataset.tellg();
         for(size_t l = 0; l < linesPerPartition; l++)
             dataset.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
     }
-
-    std::ofstream output(std::string(argv[2] + "_index"));
+    std::string outputPath(argv[2]);
+    outputPath.append("_index");
+    std::ofstream output(outputPath);
     for (int i = 0; i < partitions; i++)
         output << positions[i] << '\t' << (i+1 == partitions ? (total_lines - i*linesPerPartition) : linesPerPartition) << std::endl;
 
