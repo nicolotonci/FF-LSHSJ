@@ -533,7 +533,7 @@ public:
 	
 
 	ff::cout << "MMAP DEBUG => Size: " << size << " - Offset: " << mmap_offset << " - Additional offset: " << additional_offset << std::endl;
-        mapped = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, mmap_offset));
+        mapped = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE | MAP_POPULATE, fd, mmap_offset));
         close(fd);
         std::vector<ff::ff_node*> mappers, reducers;
 
